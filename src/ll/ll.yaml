@@ -1,0 +1,462 @@
+config:
+  default_byte_order: LE
+  buffer_address_type: u8
+  register_address_type: u8
+  defmt_feature: "defmt-03"
+
+chip_id:
+  type: register
+  address: 0x00
+  access: RO
+  size_bits: 8
+  description: Chip identification code
+  fields:
+    chip_id:
+      base: uint
+      start: 0
+      end: 8
+      description: Should be value 0x24
+
+err_reg:
+  type: register
+  address: 0x02
+  access: RO
+  size_bits: 8
+  description: Reports sensor error conditions
+  fields:
+    fatal_err:
+      base: bool
+      start: 0
+      description: |
+        Fatal Error, chip is not in operational state (Boot-,
+        power-system). This flag will be reset only by power-
+        on-reset or softreset.
+    internal_err:
+      base: uint
+      start: 1
+      end: 4
+      description: Internal error, please contact your Bosch Sensortec regional support team.
+    fifo_err:
+      base: bool
+      start: 6
+      description: |
+        Error when a frame is read in streaming mode (so
+        skipping is not possible) and fifo is overfilled (with
+        virtual and/or regular frames). This flag will be reset
+        when read.
+    aux_err:
+      base: bool
+      start: 7
+      description: Error in I2C-Master detected. This flag will be reset when read.
+
+status:
+  type: register
+  address: 0x03
+  access: RO
+  size_bits: 8
+  description: Sensor status flags
+  fields:
+    aux_busy:
+      base: bool
+      start: 2
+      description: |
+        '1'('0') indicate a (no) Auxiliary sensor interface operation
+        is ongoing triggered via AUX_RD_ADDR,
+        AUX_WR_ADDR or from FCU.
+    cmd_rdy:
+      base: bool
+      start: 4
+      description: |
+        CMD decoder status. '0' -> Command in progress '1' ->
+        Command decoder is ready to accept a new command
+    drdy_aux:
+      base: bool
+      start: 5
+      description: |
+        Data ready for Auxiliary sensor. It gets reset, when one
+        Auxiliary sensor DATA register is read out
+    drdy_gyr:
+      base: bool
+      start: 6
+      description: |
+        Data ready for Gyroscope. It gets reset, when one
+        Gyroscope DATA register is read out
+    drdy_acc:
+      base: bool
+      start: 7
+      description: |
+        Data ready for Accelerometer. It gets reset, when one
+        Accelerometer DATA register is read out
+
+internal_status:
+  type: register
+  address: 0x21
+  access: RO
+  size_bits: 8
+  description: Error bits and message indicating internal status
+  fields:
+    message:
+      base: uint
+      start: 0
+      end: 3
+      description: Internal Status Message
+      conversion:
+        name: StatusMessage
+        not_init:
+          value: 0x00
+          description: ASIC is not initialized
+        init_ok:
+          value: 0x01
+          description: ASIC initialized
+        init_err:
+          value: 0x02
+          description: Initialization error
+        drv_err:
+          value: 0x03
+          description: Invalid driver
+        sns_stop:
+          value: 0x04
+          description: Sensor stopped
+        nvm_error:
+          value: 0x05
+          description: Internal error while accessing NVM
+        start_up_error:
+          value: 0x06
+          description: Internal error while accessing NVM and Initialization error
+        compat_error:
+          value: 0x07
+          description: Compatibility error
+    axes_remap_error:
+      base: bool
+      start: 5
+    odr_50hz_error:
+      base: bool
+      start: 6
+
+aux:
+  type: register
+  address: 0x04
+  access: RO
+  size_bits: 48
+  description: Auxiliary sensor data
+  fields:
+    x:
+      base: int
+      start: 0
+      end: 16
+    y:
+      base: int
+      start: 16
+      end: 32
+    z:
+      base: int
+      start: 32
+      end: 48
+
+acc:
+  type: register
+  address: 0x0C
+  access: RO
+  size_bits: 48
+  description: Accelerometer data
+  fields:
+    x:
+      base: int
+      start: 0
+      end: 16
+    y:
+      base: int
+      start: 16
+      end: 32
+    z:
+      base: int
+      start: 32
+      end: 48
+
+gyr:
+  type: register
+  address: 0x12
+  access: RO
+  size_bits: 48
+  description: Gyroscope data
+  fields:
+    x:
+      base: int
+      start: 0
+      end: 16
+    y:
+      base: int
+      start: 16
+      end: 32
+    z:
+      base: int
+      start: 32
+      end: 48
+
+temperature:
+  type: register
+  address: 0x22
+  access: RO
+  size_bits: 16
+  description: |
+    Temperature data
+
+    The temperature is disabled when all sensors are in suspend. The output word of
+    the 16-bit temperature sensor is valid if the Gyroscope is in normal mode, i.e. gyr_pmu_status=1.
+    The resolution is 1/2^9 K/LSB. The absolute accuracy of the temperature is in the order of:
+    * 0x7FFF -> 87-1/2^9 °C
+    * 0x0000 -> 23°C
+    * 0x8001 -> -41+1/2^9 °C
+    * 0x8000 -> invalid
+    If the Gyroscope is in normal mode (see register PMU_STATUS), the temperature is updated every 10 ms (+-
+    12%), if the gyroscope is in standby mode or fast-power up mode, the temperature is updated ever 1.28 s aligned with
+    bit 15 of the register SENSORTIME.
+  fields:
+    data:
+      base: uint
+      start: 0
+      end: 16
+
+acc_conf:
+  type: register
+  address: 0x40
+  access: RW
+  size_bits: 8
+  description: Power mode control register
+  fields:
+    acc_odr:
+      base: uint
+      start: 0
+      end: 4
+      description: |
+        ODR in Hz. The output data rate is independent of
+        the power mode setting for the sensor
+      try_conversion:
+        name: acc_odr
+        odr_0p78:
+          value: 0x01
+          description: 25/32Hz
+        odr_1p5:
+          value: 0x02
+          description: 25/16Hz
+        odr_3p1:
+          value: 0x03
+          description: 25/8Hz
+        odr_6p25:
+          value: 0x04
+          description: 25/4Hz
+        odr_12p5:
+          value: 0x05
+          description: 25/2Hz
+        odr_25:
+          value: 0x06
+          description: 25Hz
+        odr_50:
+          value: 0x07
+          description: 50Hz
+        odr_100:
+          value: 0x08
+          description: 100Hz
+          default:
+        odr_200:
+          value: 0x09
+          description: 200Hz
+        odr_400:
+          value: 0x0a
+          description: 400Hz
+        odr_800:
+          value: 0x0b
+          description: 800Hz
+        odr_1k6:
+          value: 0x0c
+          description: 1600Hz
+    acc_bwp:
+      base: uint
+      start: 4
+      end: 7
+      description: |
+        Bandwidth parameter determines filter configuration
+        (acc_filt_perf=1) and averaging for undersampling
+        mode (acc_filt_perf=0)
+      conversion:
+        name: acc_bwp
+        osr4_avg1:
+          value: 0x00
+          description: acc_filt_perf = 1 -> OSR4 mode; acc_filt_perf = 0 -> no averaging
+        osr2_avg2:
+          value: 0x01
+          description: acc_filt_perf = 1 -> OSR2 mode; acc_filt_perf = 0 -> average 2 samples
+        norm_avg4:
+          value: 0x02
+          description: acc_filt_perf = 1 -> normal mode; acc_filt_perf = 0 -> average 4 samples
+        cic_avg8:
+          value: 0x03
+          description: acc_filt_perf = 1 -> CIC mode; acc_filt_perf = 0 -> average 8 samples
+        res_avg16:
+          value: 0x04
+          description: acc_filt_perf = 1 -> Reserved; acc_filt_perf = 0 -> average 16 samples
+        res_avg32:
+          value: 0x05
+          description: acc_filt_perf = 1 -> Reserved; acc_filt_perf = 0 -> average 32 samples
+        res_avg64:
+          value: 0x06
+          description: acc_filt_perf = 1 -> Reserved; acc_filt_perf = 0 -> average 64 samples
+        res_avg128:
+          value: 0x07
+          description: acc_filt_perf = 1 -> Reserved; acc_filt_perf = 0 -> average 128 samples
+    acc_filter_perf:
+      base: uint
+      start: 7
+      end: 8
+      description: Select accelerometer filter performance mode
+      conversion:
+        name: acc_filter_perf
+        ulp:
+          value: 0x00
+          description: Power optimized
+        hlp:
+          value: 0x01
+          description: Performance opt.
+
+acc_range:
+  type: register
+  address: 0x41
+  access: RW
+  size_bits: 8
+  description: Selection of the Accelerometer g-range
+  fields:
+    range_2g:
+      base: uint
+      start: 0
+      end: 2
+      description: Accelerometer g-range
+      conversion:
+        name: acc_range
+        range_2g:
+          value: 0x00
+          description: +/-2g
+        range_4g:
+          value: 0x01
+          description: +/-2g
+        range_8g:
+          value: 0x02
+          description: +/-4g
+        range_16g:
+          value: 0x03
+          description: +/-16g
+
+init_ctrl:
+  type: register
+  address: 0x59
+  access: RW
+  size_bits: 8
+  description: Start initialization
+  fields:
+    init_ctrl:
+      base: uint
+      start: 0
+      end: 8
+      description: Start initialization
+
+init_addr:
+  type: register
+  address: 0x5B
+  access: RW
+  size_bits: 16
+  description: |
+    Base address of the initialization data. Increment by burst write length in bytes/2 after each burst write
+    operation. Please ignore, if your host supports to load the initialization data in a single 8kB burst write operation.
+  fields:
+    init_addr0:
+      base: uint
+      start: 0
+      end: 4
+      description: Base address for initialization data
+    init_addr1:
+      base: uint
+      start: 8
+      end: 16
+      description: Base address for initialization data
+
+init_data:
+  type: buffer
+  address: 0x5E
+  access: WO
+  description: Register for initialization data
+
+pwr_conf:
+  type: register
+  address: 0x7C
+  access: RW
+  size_bits: 8
+  description: Power mode configuration register
+  fields:
+    adv_power_save:
+      base: bool
+      start: 0
+      description: Advanced power mode enabled
+    fifo_self_wake_up:
+      base: bool
+      start: 1
+      description: FIFO read enabled in low power mode after FIFO interrupt is fired
+    fup_en:
+      base: bool
+      start: 2
+      description: Fast power up enabled
+
+pwr_ctrl:
+  type: register
+  address: 0x7D
+  access: RW
+  size_bits: 8
+  description: Power mode control register
+  fields:
+    aux_en:
+      base: bool
+      start: 0
+      description: Enables the Auxiliary sensor
+    gyr_en:
+      base: bool
+      start: 1
+      description: Enables the Gyroscope
+    acc_en:
+      base: bool
+      start: 2
+      description: Enables the Accelerometer
+    temp_en:
+      base: bool
+      start: 3
+      description: Enables the Temperature sensor
+
+cmd:
+  type: register
+  address: 0x7E
+  access: WO
+  size_bits: 8
+  description: Command register
+  fields:
+    cmd:
+      base: uint
+      start: 0
+      end: 8
+      description: Executes a command
+      try_conversion:
+        name: Command
+        g_trigger:
+          value: 0x02
+          description: Trigger special gyro operations
+        usr_gain:
+          value: 0x03
+          description: Applies new gyro gain value
+        nvm_prog:
+          value: 0xa0
+          description: Writes the NVM backed registers into NVM
+        fifo_flush:
+          value: 0xb0
+          description: Clears FIFO content
+        softreset:
+          value: 0xb6
+          description: |
+            Triggers a reset, all user configuration
+            settings are overwritten with their
+            default state

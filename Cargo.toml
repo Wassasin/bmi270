@@ -1,0 +1,18 @@
+[package]
+name = "bmi270"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+device-driver = { git = "https://github.com/diondokter/device-driver.git", rev = "e49ecfd0e7c6f687c69dc36ebf08bd28f48adc87", default-features = false, features = ["yaml"] }
+embedded-hal = "1.0"
+embedded-hal-async = "1.0"
+defmt = { version = "0.3", optional = true }
+heapless = "0.8"
+
+[features]
+defmt-03 = ["dep:defmt", "device-driver/defmt-03"]
+
+[dev-dependencies]
+embedded-hal-mock = { version = "0.11.1", features = ["embedded-hal-async"] }
+futures-test = "0.3.31"
