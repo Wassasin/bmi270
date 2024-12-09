@@ -88,51 +88,6 @@ status:
         Data ready for Accelerometer. It gets reset, when one
         Accelerometer DATA register is read out
 
-internal_status:
-  type: register
-  address: 0x21
-  access: RO
-  size_bits: 8
-  description: Error bits and message indicating internal status
-  fields:
-    message:
-      base: uint
-      start: 0
-      end: 3
-      description: Internal Status Message
-      conversion:
-        name: StatusMessage
-        not_init:
-          value: 0x00
-          description: ASIC is not initialized
-        init_ok:
-          value: 0x01
-          description: ASIC initialized
-        init_err:
-          value: 0x02
-          description: Initialization error
-        drv_err:
-          value: 0x03
-          description: Invalid driver
-        sns_stop:
-          value: 0x04
-          description: Sensor stopped
-        nvm_error:
-          value: 0x05
-          description: Internal error while accessing NVM
-        start_up_error:
-          value: 0x06
-          description: Internal error while accessing NVM and Initialization error
-        compat_error:
-          value: 0x07
-          description: Compatibility error
-    axes_remap_error:
-      base: bool
-      start: 5
-    odr_50hz_error:
-      base: bool
-      start: 6
-
 aux:
   type: register
   address: 0x04
@@ -193,6 +148,119 @@ gyr:
       start: 32
       end: 48
 
+int_status_0:
+  type: register
+  address: 0x1C
+  access: RO
+  size_bits: 8
+  description: Interrupt/Feature Status. Will be cleared on read.
+  fields:
+    sig_motion_out:
+      base: bool
+      start: 0
+      description: Sigmotion output
+    step_counter_out:
+      base: bool
+      start: 1
+      description: Step-counter watermark or Step-detector output
+    activity_out:
+      base: bool
+      start: 2
+      description: Step activity output
+    wrist_wear_wakeup_out:
+      base: bool
+      start: 3
+      description: Wrist wear wakeup output
+    wrist_gesture_out:
+      base: bool
+      start: 4
+      description: Wrist gesture output
+    no_motion_out:
+      base: bool
+      start: 5
+      description: No motion detection output
+    any_motion_out:
+      base: bool
+      start: 6
+      description: Any motion detection output
+
+int_status_1:
+  type: register
+  address: 0x1D
+  access: RW
+  size_bits: 8
+  description: Interrupt Status 1. Will be cleared on read when bit 0 is sent out over the bus.
+  fields:
+    ffull_int:
+      base: bool
+      start: 0
+      description: FIFO Full Interrupt
+    fwm_int:
+      base: bool
+      start: 1
+      description: FIFO Watermark Interrupt
+    err_int:
+      base: bool
+      start: 2
+      description: ERROR Interrupt
+    aux_drdy_int:
+      base: bool
+      start: 5
+      description: Auxiliary Data Ready Interrupt
+    gyr_drdy_int:
+      base: bool
+      start: 6
+      description: Gyroscope Data Ready Interrupt
+    acc_drdy_int:
+      base: bool
+      start: 7
+      description: Accelerometer Data Ready Interrupt
+
+internal_status:
+  type: register
+  address: 0x21
+  access: RO
+  size_bits: 8
+  description: Error bits and message indicating internal status
+  fields:
+    message:
+      base: uint
+      start: 0
+      end: 3
+      description: Internal Status Message
+      conversion:
+        name: StatusMessage
+        not_init:
+          value: 0x00
+          description: ASIC is not initialized
+        init_ok:
+          value: 0x01
+          description: ASIC initialized
+        init_err:
+          value: 0x02
+          description: Initialization error
+        drv_err:
+          value: 0x03
+          description: Invalid driver
+        sns_stop:
+          value: 0x04
+          description: Sensor stopped
+        nvm_error:
+          value: 0x05
+          description: Internal error while accessing NVM
+        start_up_error:
+          value: 0x06
+          description: Internal error while accessing NVM and Initialization error
+        compat_error:
+          value: 0x07
+          description: Compatibility error
+    axes_remap_error:
+      base: bool
+      start: 5
+    odr_50hz_error:
+      base: bool
+      start: 6
+
 temperature:
   type: register
   address: 0x22
@@ -216,6 +284,61 @@ temperature:
       base: uint
       start: 0
       end: 16
+
+feat_page:
+  type: register
+  address: 0x2F
+  access: RW
+  size_bits: 8
+  description: Page number for feature configuration and output registers
+  fields:
+    page:
+      base: uint
+      start: 0
+      end: 3
+      description: Map 16 feature registers to one of the 8 feature pages
+
+any_motion1:
+  type: register
+  address: 0x3C
+  access: RW
+  size_bits: 16
+  reset_value: 0xE005
+  description: Any-motion detection general configuration flags - part 1
+  fields:
+    duration:
+      base: uint
+      start: 0
+      end: 13
+    select_x:
+      base: bool
+      start: 13
+    select_y:
+      base: bool
+      start: 14
+    select_z:
+      base: bool
+      start: 15
+any_motion2:
+  type: register
+  address: 0x3E
+  access: RW
+  size_bits: 16
+  reset_value: 0x38AA
+  description: Any-motion detection general configuration flags - part 2
+  fields:
+    threshold:
+      base: uint
+      start: 0
+      end: 11
+    out_conf:
+      base: uint
+      start: 11
+      end: 15
+    enable:
+      base: bool
+      start: 15
+      description: Enables the feature
 
 acc_conf:
   type: register
@@ -345,6 +468,201 @@ acc_range:
           value: 0x03
           description: +/-16g
 
+fifo_config_0:
+  type: register
+  address: 0x48
+  access: RW
+  size_bits: 8
+  reset_value: 0x02
+  description: FIFO frame content configuration
+  fields:
+    fifo_stop_on_full:
+      base: bool
+      start: 0
+      description: Stop writing samples into FIFO when FIFO is full
+    fifo_time_en:
+      base: bool
+      start: 1
+      description: Return sensortime frame after the last valid data frame
+
+fifo_config_1:
+  type: register
+  address: 0x49
+  access: RW
+  size_bits: 8
+  reset_value: 0x10
+  description: FIFO frame content configuration
+  fields:
+    fifo_tag_int1_en:
+      base: uint
+      start: 0
+      end: 2
+      description: FIFO interrupt 1 tag enable
+    fifo_tag_int2_en:
+      base: uint
+      start: 2
+      end: 4
+      description: FIFO interrupt 2 tag enable
+    fifo_header_en:
+      base: bool
+      start: 4
+    fifo_aux_en:
+      base: bool
+      start: 5
+    fifo_acc_en:
+      base: bool
+      start: 6
+    fifo_gyr_en:
+      base: bool
+      start: 7
+
+int1_io_ctrl:
+  type: register
+  address: 0x53
+  access: RW
+  size_bits: 8
+  description: Configure the electrical behavior of the interrupt pin INT1
+  fields:
+    lvl:
+      base: uint
+      start: 1
+      end: 2
+      description: Configure output level of pin
+      conversion:
+        name: int_pin_level
+        active_low: 0x00
+        active_high: 0x01
+    od:
+      base: uint
+      start: 2
+      end: 3
+      description: Configure output behaviour of pin
+      conversion:
+        name: int_pin_od
+        push_pull: 0x00
+        open_drain: 0x01
+    output_en:
+      base: bool
+      start: 3
+      description: Output enable for pin
+    input_en:
+      base: bool
+      start: 4
+      description: Input enable for pin
+
+int2_io_ctrl:
+  type: ref
+  target: int1_io_ctrl
+  description: Configure the electrical behavior of the interrupt pin INT2
+  override:
+    address: 0x54
+    type: register
+
+int_latch:
+  type: register
+  address: 0x55
+  access: RW
+  size_bits: 8
+  description: Configure interrupt latch modes
+  fields:
+    int_latch:
+      base: uint
+      start: 0
+      end: 1
+      description: Latched/non-latched interrupt modes
+      conversion:
+        name: latch_mode
+        none:
+          value: 0x00
+          description: Non latched
+        permanent:
+          value: 0x01
+          description: Permanent latched
+
+int1_map_feat:
+  type: register
+  address: 0x56
+  access: RW
+  size_bits: 8
+  description: Interrupt/Feature mapping on INT1
+  fields:
+    sig_motion_out:
+      base: bool
+      start: 0
+      description: Sigmotion output
+    step_counter_out:
+      base: bool
+      start: 1
+      description: Step-counter watermark or Step-detector output
+    activity_out:
+      base: bool
+      start: 2
+      description: Step activity output
+    wrist_wear_wakeup_out:
+      base: bool
+      start: 3
+      description: Wrist wear wakeup output
+    wrist_gesture_out:
+      base: bool
+      start: 4
+      description: Wrist gesture output
+    no_motion_out:
+      base: bool
+      start: 5
+      description: No motion detection output
+    any_motion_out:
+      base: bool
+      start: 6
+      description: Any motion detection output
+
+int2_map_feat:
+  type: ref
+  target: int1_map_feat
+  description: Interrupt/Feature mapping on INT2
+  override:
+    address: 0x57
+    type: register
+
+int_map_data:
+  type: register
+  address: 0x58
+  access: RW
+  size_bits: 8
+  description: Data Interrupt mapping of both INT pins
+  fields:
+    ffull_int1:
+      base: bool
+      start: 0
+      description: FIFO Full interrupt mapped to INT1
+    fwm_int1:
+      base: bool
+      start: 1
+      description: FIFO Watermark interrupt mapped to INT1
+    drdy_int1:
+      base: bool
+      start: 2
+      description: Data Ready interrupt mapped to INT1
+    err_int1:
+      base: bool
+      start: 3
+      description: Error interrupt mapped to INT1
+    ffull_int2:
+      base: bool
+      start: 4
+      description: FIFO Full interrupt mapped to INT2
+    fwm_int2:
+      base: bool
+      start: 5
+      description: FIFO Watermark interrupt mapped to INT2
+    drdy_int2:
+      base: bool
+      start: 6
+      description: Data Ready interrupt mapped to INT2
+    err_int2:
+      base: bool
+      start: 7
+      description: Error interrupt mapped to INT2
+
 init_ctrl:
   type: register
   address: 0x59
@@ -389,6 +707,7 @@ pwr_conf:
   address: 0x7C
   access: RW
   size_bits: 8
+  reset_value: 0x03
   description: Power mode configuration register
   fields:
     adv_power_save:

@@ -11,7 +11,7 @@ embassy-futures = { git = "https://github.com/embassy-rs/embassy.git", rev = "9f
 embassy-sync = { git = "https://github.com/embassy-rs/embassy.git", rev = "9ff8c70009233d4ea05208e3aa649c5b15512cab", features = ["defmt"] }
 embassy-executor = { git = "https://github.com/embassy-rs/embassy.git", rev = "9ff8c70009233d4ea05208e3aa649c5b15512cab", features = ["task-arena-size-32768", "arch-cortex-m", "executor-thread", "executor-interrupt", "defmt", "integrated-timers"] }
 embassy-time = { git = "https://github.com/embassy-rs/embassy.git", rev = "9ff8c70009233d4ea05208e3aa649c5b15512cab", features = ["defmt", "defmt-timestamp-uptime"] }
-embassy-nrf = { git = "https://github.com/embassy-rs/embassy.git", rev = "9ff8c70009233d4ea05208e3aa649c5b15512cab", features = ["defmt", "nrf52840", "time-driver-rtc1", "gpiote", "unstable-pac", "time"] }
+embassy-nrf = { git = "https://github.com/embassy-rs/embassy.git", rev = "9ff8c70009233d4ea05208e3aa649c5b15512cab", features = ["defmt", "nrf5340-app-s", "time-driver-rtc1", "gpiote", "unstable-pac", "time"] }
 
 defmt = "0.3"
 defmt-rtt = "0.4"
