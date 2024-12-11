@@ -5,12 +5,12 @@ use crate::ll;
 fn regw(register: u8, values: &[u8]) -> Transaction {
     let mut expected = vec![register];
     expected.extend_from_slice(values);
-    Transaction::write(ll::Address::Default as u8, expected)
+    Transaction::write(ll::i2c::Address::Default as u8, expected)
 }
 
 fn regr(register: u8, values: &[u8]) -> Transaction {
     Transaction::write_read(
-        ll::Address::Default as u8,
+        ll::i2c::Address::Default as u8,
         vec![register],
         Vec::from(values),
     )
@@ -27,7 +27,10 @@ async fn example() {
 
     let mut i2c = Mock::new(&expectations);
 
-    let mut ll = ll::Device::new(ll::DeviceInterface::new(&mut i2c, ll::Address::Default));
+    let mut ll = ll::Device::new(ll::i2c::DeviceInterface::new(
+        &mut i2c,
+        ll::i2c::Address::Default,
+    ));
     assert_eq!(ll.chip_id().read_async().await.unwrap().chip_id(), 0x24);
 
     ll.cmd()
@@ -49,7 +52,10 @@ async fn init() {
 
     let mut i2c = Mock::new(&expectations);
 
-    let mut ll = ll::Device::new(ll::DeviceInterface::new(&mut i2c, ll::Address::Default));
+    let mut ll = ll::Device::new(ll::i2c::DeviceInterface::new(
+        &mut i2c,
+        ll::i2c::Address::Default,
+    ));
 
     let addr = 6420;
     let haddr = (addr / 2) as u16;
