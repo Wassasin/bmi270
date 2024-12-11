@@ -2,6 +2,7 @@
 mod test;
 
 pub mod i2c;
+pub mod spi;
 
 device_driver::create_device!(
     device_name: Device,

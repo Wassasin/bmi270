@@ -17,11 +17,6 @@ pub struct DeviceInterface<I2C: I2c> {
     address: Address,
 }
 
-device_driver::create_device!(
-    device_name: Device,
-    manifest: "src/ll/ll.yaml"
-);
-
 impl<I2C: I2c> DeviceInterface<I2C> {
     /// Construct a new instance of the device.
     ///
